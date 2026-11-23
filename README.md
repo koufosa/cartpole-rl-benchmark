@@ -1,98 +1,74 @@
-# CartPole RL Benchmark
+# CartPole Reinforcement Learning
 
-**Random control vs. a physics heuristic vs. a learned neural-network policy** on Gymnasium's `CartPole-v1`.
+I built this project to experiment with different ways of controlling the CartPole environment in Python. The goal is simple: move a cart left or right to keep a pole balanced for as long as possible.
 
-> **Project status:** Official Gymnasium benchmark completed successfully on November 23, 2026. See the [verified results report](reports/official-gymnasium-benchmark.md) and [successful GitHub Actions run](https://github.com/koufosa/cartpole-rl-benchmark/actions/runs/45241257740).
+What interested me was seeing how a model that learns from experience compares with a basic set of rules that already understands something about the physics.
 
-## Research question
+## What I built
 
-Can a learned control policy balance the pole more reliably than random actions and a simple angle-based controller? How does exploration change learning?
+I compared three approaches:
 
-## What this project demonstrates
+1. **Random agent** — randomly moves left or right. This is my baseline.
+2. **Physics-based agent** — uses the pole's angle and angular velocity to decide which way the cart should move.
+3. **Neural network agent** — learns from higher-reward episodes, using a small neural network and epsilon-greedy exploration.
 
-- Sequential decision-making in the CartPole environment (state = cart position, cart velocity, pole angle, pole angular velocity; actions = left or right).
-- Three controller families: random baseline, hand-crafted physical heuristic, and a neural-network policy.
-- **Elite-episode cross-entropy method (CEM):** collect trajectories, select top-performing episodes, and use their state/action pairs to update an `MLPClassifier` with `partial_fit`.
-- ε-greedy **exploration**: with probability ε, choose a random action; otherwise sample from the current policy. ε decays across training epochs.
-- Evaluation with held-out, matching environment seeds across agents; 100 episodes by default.
-- Training plots, evaluation boxplots, and per-episode CSV exports.
+For the neural network, I used scikit-learn's `MLPClassifier` with two hidden layers of 64 neurons. It trains on the states and actions from the better episodes, using an elite-episode approach (often called the cross-entropy method). This isn't DQN or Q-learning; it's a simpler way to learn a policy from experience.
 
-**Algorithm clarification:** This project uses CEM-style supervised policy search, **not Q-learning, deep Q-network (DQN), or policy-gradient REINFORCE**. The neural network predicts actions, not action-value estimates. The environment's episode returns are used to *select* training trajectories, not as a gradient target.
+I also added scripts for training, evaluation, and plotting so I could compare the agents on the same test episodes.
 
-## Installation
+## Results
 
-Requirements: Python 3.10+, a terminal, and optionally a graphical desktop for the render command.
+I trained the neural network for **100 epochs**, with **40 episodes per epoch**, then evaluated all three approaches on **100 episodes** using Gymnasium's `CartPole-v1`. Each episode has a maximum reward of 500.
+
+| Agent | Average reward | Episodes scoring at least 475 |
+| --- | ---: | ---: |
+| Random | 21.7 / 500 | 0 / 100 |
+| Physics-based | 500.0 / 500 | 100 / 100 |
+| Neural network | 467.1 / 500 | 76 / 100 |
+
+The neural network was a major improvement over random actions, but the physics-based agent still performed better. I found that interesting because a well-chosen rule can outperform a learned model on a problem this simple.
+
+The neural network also wasn't perfect every time. Its average score was high, but the results varied between episodes. I'd like to explore whether changing the training strategy or testing multiple random seeds makes the learned policy more consistent.
+
+These numbers are from a completed [GitHub Actions run using Gymnasium](https://github.com/koufosa/cartpole-rl-benchmark/actions/runs/45241257740). You can find the [full results and charts here](https://github.com/koufosa/cartpole-rl-benchmark/actions/runs/45241257740/artifacts/14852625271).
+
+## Running the project
+
+You'll need Python 3.10 or newer.
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate  # Windows PowerShell: .venv\Scripts\Activate.ps1
+git clone https://github.com/koufosa/cartpole-rl-benchmark.git
+cd cartpole-rl-benchmark
+
+python3 -m venv .venv
+source .venv/bin/activate
 python -m pip install -e '.[dev]'
 ```
 
-## Reproduce the experiment
+Train the neural network:
 
 ```bash
-# Train the learned policy (random and heuristic agents require no training)
-cartpole-benchmark train --epochs 100 --episodes-per-epoch 40 --seed 42
-
-# Evaluate the saved agent and both baselines on the same 100 environment seeds
-cartpole-benchmark evaluate --model outputs/policy.joblib --episodes 100 --seed 10000
-
-# Watch a trained policy in a graphical environment
-cartpole-benchmark demo --agent neural --model outputs/policy.joblib
-
-# Tests
-python -m pytest -q
+cartpole-benchmark train --epochs 100 --episodes-per-epoch 40
 ```
 
-For a fast smoke test, use `cartpole-benchmark train --epochs 2 --episodes-per-epoch 4` and `cartpole-benchmark evaluate --episodes 5`. Those short runs do **not** establish meaningful performance.
+Compare the three agents:
 
-## Repository structure
-
-```text
-cartpole-rl-benchmark/
-├── .github/workflows/tests.yml   # CI test workflow
-├── src/cartpole_benchmark/
-│   ├── agents.py                  # Controllers and neural policy
-│   ├── env.py                     # Gymnasium episode runner
-│   ├── training.py                # Elite-episode training and CSV logs
-│   ├── evaluation.py              # Matched-seed benchmark
-│   ├── plots.py                   # Training/evaluation visualization
-│   └── cli.py                     # Command line entry point
-├── tests/                         # Agent and episode unit tests
-├── outputs/                       # Generated locally; not committed
-├── pyproject.toml
-└── README.md
+```bash
+cartpole-benchmark evaluate --episodes 100
 ```
 
-## Evaluation protocol
+Watch the trained agent balance the pole (requires a graphical display):
 
-- `CartPole-v1` runs up to 500 timesteps. Its reward is +1 per timestep survived.
-- All three agents are evaluated on *the same set of reset seeds*. Training uses different seeds than evaluation.
-- The neural agent is evaluated greedily (argmax action probability, ε=0), rather than with exploratory action sampling.
-- Report mean, standard deviation, median, minimum, maximum, and the share of evaluation episodes achieving **at least 475** reward.
-- The random baseline has a seeded RNG, though its action sequence depends on previous episode lengths. Exact action-level pairing across agents is not attempted.
-- Training reward uses exploratory trajectories, so it is **not** directly interchangeable with deterministic test reward.
+```bash
+cartpole-benchmark demo --agent neural
+```
 
-### Verified official Gymnasium results
+Training and evaluation save CSV files and plots in the `outputs/` folder. Run `python -m pytest -q` to check the tests.
 
-[GitHub Actions run #2](https://github.com/koufosa/cartpole-rl-benchmark/actions/runs/45241257740) installed Gymnasium, ran tests, trained for 100 epochs (40 episodes each) and evaluated all agents over the same 100 held-out environment seeds.
+## What I used
 
-| Controller | Mean reward (100 episodes) | Std. dev. | Success rate ≥475 |
-| --- | ---: | ---: | ---: |
-| Random | 21.7 | 11.0 | 0% |
-| Physics heuristic | 500.0 | 0.0 | 100% |
-| Neural policy | 467.1 | 63.1 | 76% |
+Python, Gymnasium, NumPy, scikit-learn, Matplotlib, pytest, and GitHub Actions.
 
-The neural policy substantially outperformed random control, but the handcrafted physics heuristic remained stronger in the tested environment. All results are from **one trained policy** across 100 evaluation episodes; multiple training seeds would support stronger generalization claims.
+## What I want to try next
 
-Read the [official reproducibility report](reports/official-gymnasium-benchmark.md), or [download the official CSVs, plots, and policy](https://github.com/koufosa/cartpole-rl-benchmark/actions/runs/45241257740/artifacts/14852625271). The older [provisional local physics reproduction](reports/provisional-benchmark.md) is retained separately for transparency.
-
-**Limitation:** CEM can plateau, and a basic MLP policy is not guaranteed to solve CartPole. Compare multiple training seeds, percentile thresholds, and epsilon schedules before making strong conclusions.
-
-
-## Tools
-
-Python, Gymnasium, NumPy, scikit-learn, Matplotlib, pytest, GitHub Actions.
-
-
+I'd like to compare different exploration rates, repeat training with several random seeds, and try a more advanced reinforcement learning approach to see if it can match or beat the physics-based controller.
