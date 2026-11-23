@@ -89,14 +89,6 @@ Run the experiment to populate this section with **measured** values from `outpu
 
 **Limitation:** CEM can plateau, and a basic MLP policy is not guaranteed to solve CartPole. Compare multiple training seeds, percentile thresholds, and epsilon schedules before making strong conclusions.
 
-## Suggested extensions
-
-1. Repeat training with 5+ independent seeds and report average evaluation results with uncertainty intervals.
-2. Ablate ε-greedy exploration: fixed ε=0.1 vs. decaying ε vs. no additional exploration after initialization.
-3. Add an explicit DQN implementation as a **separate algorithm**, if a value-based RL comparison is desired.
-4. Make a short demonstration video/GIF from an `rgb_array` render mode.
-5. Explain failure cases for low-performing environment initializations.
-
 
 ## Tools
 
