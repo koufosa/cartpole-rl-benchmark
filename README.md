@@ -97,14 +97,9 @@ Run the experiment to populate this section with **measured** values from `outpu
 4. Make a short demonstration video/GIF from an `rgb_array` render mode.
 5. Explain failure cases for low-performing environment initializations.
 
-## Academic integrity and provenance
-
-This is an independently structured portfolio extension inspired by a CartPole reinforcement-learning homework concept. It is **not** presented as the author's original submitted coursework and does not reproduce an instructor's assignment handout. Verify course policy before publishing any assignment-derived source. Replace this section with an accurate description of your own contributions and experiments after reviewing the code.
 
 ## Tools
 
 Python, Gymnasium, NumPy, scikit-learn, Matplotlib, pytest, GitHub Actions.
 
-## License
 
-MIT (see `LICENSE`).
