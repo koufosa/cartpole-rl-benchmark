@@ -1,0 +1,47 @@
+name: CartPole experiment
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "pyproject.toml"
+      - ".github/workflows/benchmark.yml"
+  workflow_dispatch:
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: python -m pip install -e '.[dev]'
+      - name: Confirm official Gymnasium environment
+        run: python -c "import gymnasium as gym; print('Gymnasium version:', gym.__version__); env = gym.make('CartPole-v1'); print(env.spec.id); env.close()"
+      - name: Run tests
+        run: python -m pytest -q
+      - name: Train neural policy
+        run: cartpole-benchmark train --epochs 100 --episodes-per-epoch 40 --seed 42 --output outputs
+        env:
+          OPENBLAS_NUM_THREADS: "1"
+      - name: Evaluate three controllers
+        run: cartpole-benchmark evaluate --model outputs/policy.joblib --episodes 100 --seed 10000 --output outputs
+        env:
+          OPENBLAS_NUM_THREADS: "1"
+      - name: Publish results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cartpole-gymnasium-results
+          path: |
+            outputs/training_history.csv
+            outputs/evaluation_summary.csv
+            outputs/evaluation_episodes.csv
+            outputs/training_curve.png
+            outputs/evaluation_boxplot.png
+            outputs/policy.joblib
+          if-no-files-found: warn
