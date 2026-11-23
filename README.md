@@ -1,24 +1,26 @@
 # CartPole Reinforcement Learning
 
-I built this project to experiment with different ways of controlling the CartPole environment in Python. The goal is simple: move a cart left or right to keep a pole balanced for as long as possible.
+I developed this project to explore different approaches to controlling the CartPole environment using Python. The objective is to keep a pole balanced on a moving cart by choosing whether to move left or right.
 
-What interested me was seeing how a model that learns from experience compares with a basic set of rules that already understands something about the physics.
+I wanted to see how a neural network trained through experience would compare with a simple physics-based controller.
 
 ## What I built
 
-I compared three approaches:
+I implemented and compared three approaches:
 
-1. **Random agent** — randomly moves left or right. This is my baseline.
-2. **Physics-based agent** — uses the pole's angle and angular velocity to decide which way the cart should move.
-3. **Neural network agent** — learns from higher-reward episodes, using a small neural network and epsilon-greedy exploration.
+1. **Random agent:** Selects actions randomly and provides a baseline for comparison.
+2. **Physics-based agent:** Uses the pole's angle and angular velocity to determine which direction to move.
+3. **Neural network agent:** Learns from successful episodes and uses epsilon-greedy exploration during training.
 
-For the neural network, I used scikit-learn's `MLPClassifier` with two hidden layers of 64 neurons. It trains on the states and actions from the better episodes, using an elite-episode approach (often called the cross-entropy method). This isn't DQN or Q-learning; it's a simpler way to learn a policy from experience.
+For the neural network, I used scikit-learn's `MLPClassifier` with two hidden layers of 64 neurons. The model learns from the highest-performing episodes using an elite-episode training approach (the cross-entropy method), rather than Q-learning or DQN.
 
-I also added scripts for training, evaluation, and plotting so I could compare the agents on the same test episodes.
+I also wrote scripts to train the model, evaluate all three agents using the same environment seeds, and visualize their performance.
 
 ## Results
 
-I trained the neural network for **100 epochs**, with **40 episodes per epoch**, then evaluated all three approaches on **100 episodes** using Gymnasium's `CartPole-v1`. Each episode has a maximum reward of 500.
+I trained the neural network for **100 epochs**, with **40 episodes per epoch**, and evaluated each agent over **100 episodes** in Gymnasium's `CartPole-v1`. The maximum reward per episode is 500.
+
+![Average CartPole reward for the three agents](reports/cartpole-performance.svg)
 
 | Agent | Average reward | Episodes scoring at least 475 |
 | --- | ---: | ---: |
@@ -26,15 +28,15 @@ I trained the neural network for **100 epochs**, with **40 episodes per epoch**,
 | Physics-based | 500.0 / 500 | 100 / 100 |
 | Neural network | 467.1 / 500 | 76 / 100 |
 
-The neural network was a major improvement over random actions, but the physics-based agent still performed better. I found that interesting because a well-chosen rule can outperform a learned model on a problem this simple.
+The neural network performed substantially better than the random baseline, achieving an average reward of **467.1**. However, the physics-based controller achieved the maximum reward in every evaluation episode.
 
-The neural network also wasn't perfect every time. Its average score was high, but the results varied between episodes. I'd like to explore whether changing the training strategy or testing multiple random seeds makes the learned policy more consistent.
+I found this comparison especially interesting because it shows that a well-designed rule can outperform a trained model in a relatively simple environment. While the neural network learned an effective strategy, its performance was less consistent across episodes.
 
-These numbers are from a completed [GitHub Actions run using Gymnasium](https://github.com/koufosa/cartpole-rl-benchmark/actions/runs/45241257740). You can find the [full results and charts here](https://github.com/koufosa/cartpole-rl-benchmark/actions/runs/45241257740/artifacts/14852625271).
+The results come from a successful [Gymnasium experiment on GitHub Actions](https://github.com/koufosa/cartpole-rl-benchmark/actions/runs/45241257740). I included a [more detailed breakdown](reports/official-gymnasium-benchmark.md) and the [saved results and plots](https://github.com/koufosa/cartpole-rl-benchmark/actions/runs/45241257740/artifacts/14852625271).
 
 ## Running the project
 
-You'll need Python 3.10 or newer.
+Python 3.10 or newer is required.
 
 ```bash
 git clone https://github.com/koufosa/cartpole-rl-benchmark.git
@@ -51,24 +53,24 @@ Train the neural network:
 cartpole-benchmark train --epochs 100 --episodes-per-epoch 40
 ```
 
-Compare the three agents:
+Evaluate the three agents:
 
 ```bash
 cartpole-benchmark evaluate --episodes 100
 ```
 
-Watch the trained agent balance the pole (requires a graphical display):
+Watch the trained agent (requires a graphical display):
 
 ```bash
 cartpole-benchmark demo --agent neural
 ```
 
-Training and evaluation save CSV files and plots in the `outputs/` folder. Run `python -m pytest -q` to check the tests.
+Training and evaluation save CSV files and plots to the `outputs/` folder. To run the tests, use `python -m pytest -q`.
 
-## What I used
+## Tools
 
 Python, Gymnasium, NumPy, scikit-learn, Matplotlib, pytest, and GitHub Actions.
 
-## What I want to try next
+## Next steps
 
-I'd like to compare different exploration rates, repeat training with several random seeds, and try a more advanced reinforcement learning approach to see if it can match or beat the physics-based controller.
+I plan to compare different exploration rates, train the model with multiple random seeds, and test whether a different learning approach can produce more consistent results.
