@@ -76,6 +76,9 @@ cartpole-rl-benchmark/
 
 ### Results
 
+A [provisional local benchmark report](reports/provisional-benchmark.md) documents measured results from a physics-equation reproduction (not the official Gymnasium package). The [GitHub Actions benchmark workflow](.github/workflows/benchmark.yml) runs the official Gymnasium environment and uploads its plots, CSV metrics, and trained policy as downloadable artifacts.
+
+
 Run the experiment to populate this section with **measured** values from `outputs/evaluation_summary.csv`. The charts are created at:
 
 - `outputs/training_curve.png`
