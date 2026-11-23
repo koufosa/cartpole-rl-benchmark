@@ -1,31 +1,33 @@
 # CartPole Results
 
-I trained and tested three different approaches to the CartPole problem to see how well each one could keep the pole balanced.
+I compared three approaches to the CartPole problem to evaluate how effectively each could keep the pole balanced.
 
-I used Gymnasium's `CartPole-v1`, where the highest possible reward in an episode is 500. For the neural network, I trained for 100 epochs with 40 episodes per epoch, then tested each agent over 100 episodes.
+I used Gymnasium's `CartPole-v1` environment, where an episode has a maximum reward of 500. The neural network was trained for 100 epochs, with 40 episodes per epoch, and each controller was evaluated over 100 episodes.
 
-## How they performed
+## Performance comparison
 
-| Agent | Average reward | Episodes with a reward of 475 or higher |
+![Average reward across the three CartPole agents](cartpole-performance.svg)
+
+| Agent | Average reward | Episodes scoring at least 475 |
 | --- | ---: | ---: |
 | Random | 21.7 / 500 | 0 / 100 |
 | Physics-based | 500.0 / 500 | 100 / 100 |
 | Neural network | 467.1 / 500 | 76 / 100 |
 
-The neural network did much better than choosing random actions. It balanced the pole for almost the full episode on average, although it still struggled in some runs.
+The neural network significantly outperformed random actions and maintained balance for most of each episode on average. However, its performance varied across the 100 evaluation episodes.
 
-What surprised me was that the physics-based approach performed the best. It managed to keep the pole balanced for all 500 steps in every test episode. That showed me that training a model isn't always necessary when a straightforward rule already works well.
+The physics-based agent performed best, reaching the maximum reward in every episode. I found this particularly interesting because it demonstrated that a simple, well-designed control strategy can sometimes be more effective than a learned model.
 
-## Training the neural network
+## Neural network training
 
-I used a neural network with two hidden layers of 64 neurons each. The model learns from the better episodes, and I gradually reduced the amount of random exploration during training.
+I used a neural network with two hidden layers of 64 neurons. It was trained using the better-performing episodes while gradually reducing random exploration.
 
-During training, the average reward in the final batch reached **108.3**. When I tested the trained model without random exploration, its average reward was **467.1**. The difference makes sense because it was still taking exploratory actions during training.
+The final training batch had an average reward of **108.3**, compared with **467.1** during evaluation. Training included exploratory actions, while evaluation used the model's preferred action at each step, which helps explain the difference.
 
-## Files from the experiment
+## Experiment files
 
-I ran the experiment with GitHub Actions. The [completed run](https://github.com/koufosa/cartpole-rl-benchmark/actions/runs/45241257740) includes the output files, and the [results download](https://github.com/koufosa/cartpole-rl-benchmark/actions/runs/45241257740/artifacts/14852625271) has the training graph, evaluation graph, CSV results, and saved model.
+I ran the experiment through [GitHub Actions](https://github.com/koufosa/cartpole-rl-benchmark/actions/runs/45241257740). The [results files](https://github.com/koufosa/cartpole-rl-benchmark/actions/runs/45241257740/artifacts/14852625271) include the training and evaluation plots, CSV outputs, and trained model.
 
-## What I'd try next
+## Next steps
 
-I'd like to train the model with a few different random seeds, experiment with how quickly I reduce exploration, and see whether a different training approach could perform more consistently.
+I would like to test multiple training seeds, compare different exploration schedules, and experiment with another reinforcement learning approach to see whether it produces more consistent results.
