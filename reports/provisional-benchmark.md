@@ -12,6 +12,12 @@
 - Evaluation: 100 episodes, reset seeds 10000–10099, greedy neural policy
 - Max possible episode reward: 500
 
+## Provisional charts
+
+![Mean evaluation rewards](provisional-comparison.svg)
+
+![Neural training rewards](provisional-training.svg)
+
 ## Measured results (local physics reproduction only)
 
 | Agent | Mean reward | Standard deviation | Median reward | Success ≥475/500 |
